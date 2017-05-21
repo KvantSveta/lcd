@@ -136,7 +136,7 @@ class LCD:
             for line in char:
                 self.lcd_write_char(line)
 
-    def lcd_show(self, first_row=None, second_row=None):
+    def lcd_show(self, first_row=None, second_row=None, sleep_time=15):
         self.lcd_clear()
 
         if first_row:
@@ -144,3 +144,6 @@ class LCD:
 
         if second_row:
             self.lcd_display_string(second_row, 2)
+
+        if sleep_time:
+            sleep(sleep_time)
