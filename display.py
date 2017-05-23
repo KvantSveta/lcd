@@ -104,11 +104,13 @@ def show_up_time():
             first_row="Up time:",
             second_row="{}".format(up_time)
         )
+
     elif len(up_time) <= 32:
         lcd.lcd_show(
             first_row="{}".format(up_time[:16]),
             second_row="{}".format(up_time[16:])
         )
+
     else:
         lcd.lcd_show(
             first_row="Up time error:",
@@ -133,12 +135,12 @@ def show_free():
     output = check_output(["free", "-m"])
     output = output.decode()
     output = output.splitlines()[1]
-    memory = re.findall('\d{1,3}', output)
+    memory = output.split()
 
     lcd.lcd_show(
         first_row="All use b/c free",
         second_row="{0: <4}{1: <4}{2: <4}{3: <4}".format(
-            memory[0], memory[1], memory[4], memory[2]
+            memory[1], memory[2], memory[5], memory[3]
         )
     )
 
@@ -153,20 +155,21 @@ def show_df():
         if "/dev/root" in i:
             # 'Filesystem      Size  Used Avail Use% Mounted on'
             # '/dev/root        15G  7,2G  7,5G  50% /'
-            root = re.findall("[\w,]{1,5}", i)
+            root = i.split()
 
             lcd.lcd_show(
                 first_row="FS  used  free",
-                second_row="/   {0: <4}  {1: <4}".format(root[3], root[4])
+                second_row="/   {0: <4}  {1: <4}".format(root[2], root[3])
             )
+
         elif "/dev/sda" in i:
             # 'Filesystem      Size  Used Avail Use% Mounted on'
             # '/dev/sda1       294G   58G  222G  21% /media'
-            sda = re.findall("[\w,]{1,5}", i)
+            sda = i.split()
 
             lcd.lcd_show(
                 first_row="FS  used  free",
-                second_row="sda {0: <4}  {1: <4}".format(sda[3], sda[4])
+                second_row="sda {0: <4}  {1: <4}".format(sda[2], sda[3])
             )
 
 
