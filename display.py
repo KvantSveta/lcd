@@ -1,7 +1,10 @@
 import re
 import signal
+from time import sleep
 from datetime import date
+from datetime import datetime
 from threading import Event
+from threading import Thread
 from subprocess import check_output
 
 import RPi.GPIO as GPIO
@@ -30,6 +33,26 @@ lcd = LCD(address=ADDRESS, port=I2C_BUS)
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
+
+RELAY = 21
+
+GPIO.setup(RELAY, GPIO.OUT, initial=GPIO.LOW)
+
+
+def relay(RELAY, run_service):
+    while run_service.is_set():
+        if 6 <= datetime.now().hour < 22:
+            # relay - off, display - on
+            GPIO.output(RELAY, GPIO.LOW)
+
+        else:
+            # relay - on, display - off
+            GPIO.output(RELAY, GPIO.HIGH)
+
+        sleep(60)
+
+
+Thread(target=relay, args=(RELAY, run_service)).start()
 
 
 def show_weather_log():
@@ -181,3 +204,5 @@ while run_service.is_set():
     show_up_time()
 
     show_df()
+
+GPIO.cleanup(RELAY)
