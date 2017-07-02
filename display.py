@@ -196,6 +196,18 @@ def show_df():
             )
 
 
+def show_temperature():
+    # temperature on rpi
+    temp = check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"])
+    temp = temp.decode()
+    temp = str(round(int(temp) / 1000, 1)) + "'C"
+
+    lcd.lcd_show(
+        first_row="Temperature on",
+        second_row="rpi: {0}".format(temp)
+    )
+
+
 while run_service.is_set():
     show_weather_log()
 
@@ -204,5 +216,7 @@ while run_service.is_set():
     show_up_time()
 
     show_df()
+
+    show_temperature()
 
 GPIO.cleanup(RELAY)
