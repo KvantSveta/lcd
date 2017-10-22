@@ -35,8 +35,14 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
 RELAY = 21
+GREEN_LED = 16
+IF_BUTTON = 12
 
 GPIO.setup(RELAY, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(GREEN_LED, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(IF_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+info_number = 0
 
 
 def relay(RELAY, run_service):
@@ -55,6 +61,28 @@ def relay(RELAY, run_service):
 Thread(target=relay, args=(RELAY, run_service)).start()
 
 
+def change_number(GREEN_LED, IF_BUTTON, run_service):
+    global info_number
+
+    while run_service.is_set():
+        # read IF_BUTTON every 0.5 second
+        if GPIO.input(IF_BUTTON):
+            GPIO.output(GREEN_LED, GPIO.HIGH)
+
+            info_number += 1
+            if info_number > 5:
+                info_number = 0
+
+            sleep(3)
+
+            GPIO.output(GREEN_LED, GPIO.LOW)
+
+        sleep(0.5)
+
+
+Thread(target=change_number, args=(GREEN_LED, IF_BUTTON, run_service)).start()
+
+
 def show_weather_log():
     # '10 May 17'
     now_day = date.today().strftime("%e %b %y")
@@ -63,7 +91,7 @@ def show_weather_log():
     critical = 0
 
     # weather.log
-    with open("/home/jd/Weather/weather.log") as f:
+    with open("/home/pi/Weather/weather.log") as f:
         data = f.readline()
         while data:
             if now_day in data:
@@ -208,15 +236,56 @@ def show_temperature():
     )
 
 
+def show_playing_music():
+    output = check_output(["tail", "/home/pi/AlarmClock/music.log"])
+    output = output.decode()
+    output = output.splitlines()
+
+    music = ""
+    for file in output:
+        if (".mp3" in file) or (".flac" in file) or (".ape" in file):
+            music = file.split("INFO ")[1]
+            break
+
+    if music and "-" in music:
+        author, song = music.split("-")
+
+        author = author.strip()
+        song = song.strip()
+
+        lcd.lcd_show(
+            first_row="{}".format(author[:16]),
+            second_row="{}".format(author[16:32])
+        )
+        lcd.lcd_show(
+            first_row="{}".format(song[:16]),
+            second_row="{}".format(song[16:32])
+        )
+
+    elif music:
+        lcd.lcd_show(
+            first_row="{}".format(music[:16]),
+            second_row="{}".format(music[16:32])
+        )
+        if len(music) > 32:
+            lcd.lcd_show(
+                first_row="{}".format(music[32:48]),
+                second_row="{}".format(music[48:64])
+            )
+
+
 while run_service.is_set():
-    show_weather_log()
+    if run_service.is_set() and info_number == 0:
+        show_playing_music()
+    elif run_service.is_set() and info_number == 1:
+        show_docker_ps()
+    elif run_service.is_set() and info_number == 2:
+        show_up_time()
+    elif run_service.is_set() and info_number == 3:
+        show_free()
+    elif run_service.is_set() and info_number == 4:
+        show_df()
+    else:
+        show_temperature()
 
-    show_docker_ps()
-
-    show_up_time()
-
-    show_df()
-
-    show_temperature()
-
-GPIO.cleanup(RELAY)
+GPIO.cleanup([RELAY, GREEN_LED, IF_BUTTON])
