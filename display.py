@@ -247,31 +247,17 @@ def show_playing_music():
             music = file.split("INFO ")[1]
             break
 
-    if music and "-" in music:
-        author, song = music.split("-")
-
-        author = author.strip()
-        song = song.strip()
-
-        lcd.lcd_show(
-            first_row="{}".format(author[:16]),
-            second_row="{}".format(author[16:32])
-        )
-        lcd.lcd_show(
-            first_row="{}".format(song[:16]),
-            second_row="{}".format(song[16:32])
-        )
-
-    elif music:
+    if music:
         lcd.lcd_show(
             first_row="{}".format(music[:16]),
             second_row="{}".format(music[16:32])
         )
-        if len(music) > 32:
-            lcd.lcd_show(
-                first_row="{}".format(music[32:48]),
-                second_row="{}".format(music[48:64])
-            )
+
+    if music and len(music) > 32:
+        lcd.lcd_show(
+            first_row="{}".format(music[32:48]),
+            second_row="{}".format(music[48:64])
+        )
 
 
 while run_service.is_set():
