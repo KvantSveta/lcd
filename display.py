@@ -237,26 +237,21 @@ def show_temperature():
 
 
 def show_playing_music():
-    output = check_output(["tail", "/home/pi/AlarmClock/music.log"])
+    output = check_output(["tail", "-n", "1", "/home/pi/AlarmClock/music.log"])
     output = output.decode()
-    output = output.splitlines()
+    output = output.strip()
+    output = output.split("/")[-1]
 
-    music = ""
-    for file in output:
-        if (".mp3" in file) or (".flac" in file) or (".ape" in file):
-            music = file.split("INFO ")[1]
-            break
-
-    if music:
+    if output:
         lcd.lcd_show(
-            first_row="{}".format(music[:16]),
-            second_row="{}".format(music[16:32])
+            first_row="{}".format(output[:16]),
+            second_row="{}".format(output[16:32])
         )
 
-    if music and len(music) > 32:
+    if output and len(output) > 32:
         lcd.lcd_show(
-            first_row="{}".format(music[32:48]),
-            second_row="{}".format(music[48:64])
+            first_row="{}".format(output[32:48]),
+            second_row="{}".format(output[48:64])
         )
 
 
