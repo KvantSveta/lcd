@@ -34,31 +34,13 @@ lcd = LCD(address=ADDRESS, port=I2C_BUS)
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-RELAY = 21
 GREEN_LED = 16
 IF_BUTTON = 12
 
-GPIO.setup(RELAY, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(GREEN_LED, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(IF_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 info_number = 0
-
-
-def relay(RELAY, run_service):
-    while run_service.is_set():
-        if 6 <= datetime.now().hour < 22:
-            # relay - off, display - on
-            GPIO.output(RELAY, GPIO.LOW)
-
-        else:
-            # relay - on, display - off
-            GPIO.output(RELAY, GPIO.HIGH)
-
-        sleep(60)
-
-
-Thread(target=relay, args=(RELAY, run_service)).start()
 
 
 def change_number(GREEN_LED, IF_BUTTON, run_service):
@@ -256,17 +238,27 @@ def show_playing_music():
 
 
 while run_service.is_set():
-    if run_service.is_set() and info_number == 0:
-        show_playing_music()
-    elif run_service.is_set() and info_number == 1:
-        show_docker_ps()
-    elif run_service.is_set() and info_number == 2:
-        show_up_time()
-    elif run_service.is_set() and info_number == 3:
-        show_free()
-    elif run_service.is_set() and info_number == 4:
-        show_df()
-    else:
-        show_temperature()
+    if 6 <= datetime.now().hour < 22:
+        # display - on
+        lcd.back_light(1)
 
-GPIO.cleanup([RELAY, GREEN_LED, IF_BUTTON])
+        if info_number == 0:
+            show_playing_music()
+        elif info_number == 1:
+            show_docker_ps()
+        elif info_number == 2:
+            show_up_time()
+        elif info_number == 3:
+            show_free()
+        elif info_number == 4:
+            show_df()
+        else:  # info_number == 5
+            show_temperature()
+
+    else:
+        # display - off
+        lcd.back_light(0)
+
+        sleep(60)
+
+GPIO.cleanup([GREEN_LED, IF_BUTTON])
